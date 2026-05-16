@@ -35,4 +35,9 @@ public class EmployeeController {
         employeeService.deleteEmployee(id);
         return "Employee deleted successfully";
     }
+
+    @PutMapping("/{id}")
+    public Employee updateEmployee(@PathVariable Long id, @RequestBody Employee updatededEmployee){
+    return employeeService.updateEmployee(id,updatededEmployee);
+    }
 }
