@@ -24,24 +24,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
-            HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        String userName = null;
-        String token = null;
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-        if(authHeader != null && authHeader.startsWith("Bearer ")){
-            token = authHeader.substring(7);
-            userName = jwtutil.extractUserName(token);
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
-        if(userName != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            if(jwtutil.isTokenValid(token,userName)){
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userName,null,new ArrayList<>());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+        String token = authHeader.substring(7);
+        String userName = jwtutil.extractUserName(token);
+
+        if (userName != null &&
+                SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            if (jwtutil.isTokenValid(token, userName)) {
+
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userName,
+                                null,
+                                new ArrayList<>());
+
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request));
+
+                SecurityContextHolder.getContext()
+                        .setAuthentication(authToken);
             }
         }
-        filterChain.doFilter(request, response);
 
+        filterChain.doFilter(request, response);
     }
 }
